@@ -102,6 +102,27 @@ def _check_skill_metadata(skill_name: str, text: str, errors: list[str]) -> None
         errors.append(f"{skill_name}: 本文が 500 行以上ある")
 
 
+FORBIDDEN_ALLOWED_TOOLS = (
+    "Bash(git update-ref *)",
+    "Bash(git worktree *)",
+    "Bash(gh api *)",
+    "Bash(git *)",
+    "Bash(gh *)",
+    "Bash(*)",
+    "Bash",
+    "Edit",
+    "Write",
+)
+
+
+def _check_allowed_tools(skill_name: str, text: str, errors: list[str]) -> None:
+    allowed = parse_frontmatter(text).get("allowed-tools", "")
+    entries = re.findall(r"\w+\([^)]*\)|\w+", allowed)
+    for entry in entries:
+        if entry in FORBIDDEN_ALLOWED_TOOLS:
+            errors.append(f"{skill_name}: allowed-tools に広すぎる事前許可がある: {entry}")
+
+
 def check_plugin(root: Path, report_path: Path) -> list[str]:
     """Validate the plugin's skill structure and generated child checklists."""
     errors: list[str] = []
@@ -110,6 +131,7 @@ def check_plugin(root: Path, report_path: Path) -> list[str]:
     review_text = _read_text(skills_root / "review" / "SKILL.md", errors, "review")
     if review_text is not None:
         _check_skill_metadata("review", review_text, errors)
+        _check_allowed_tools("review", review_text, errors)
 
     report_ids = table_ids(report_path.read_text(encoding="utf-8"))
     for skill_name, prefix in CHILDREN.items():

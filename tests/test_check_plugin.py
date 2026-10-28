@@ -100,6 +100,32 @@ class TestCheckPlugin(unittest.TestCase):
     def assert_error_contains(self, errors: list[str], expected: str):
         self.assertTrue(any(expected in error for error in errors), errors)
 
+    def test_broad_write_capable_preapproval_is_rejected(self):
+        for pattern in ("Bash(git update-ref *)", "Bash(git worktree *)", "Bash(gh api *)"):
+            with self.subTest(pattern=pattern), tempfile.TemporaryDirectory() as temporary_directory:
+                root, report_path = self.make_valid_plugin(Path(temporary_directory))
+                review = root / "plugins" / "rails-ts-pr-review" / "skills" / "review" / "SKILL.md"
+                review.write_text(
+                    "---\nname: review\ndescription: Parent review skill\n"
+                    f"allowed-tools: Read Bash(git show *) {pattern}\n---\nbody\n",
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                self.assert_error_contains(check_plugin(root, report_path), pattern)
+
+    def test_narrow_cleanup_preapproval_is_allowed(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root, report_path = self.make_valid_plugin(Path(temporary_directory))
+            review = root / "plugins" / "rails-ts-pr-review" / "skills" / "review" / "SKILL.md"
+            review.write_text(
+                "---\nname: review\ndescription: Parent review skill\n"
+                "allowed-tools: Read Bash(git worktree add --detach *) "
+                "Bash(git update-ref -d refs/pr-review/*)\n---\nbody\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            self.assertEqual(check_plugin(root, report_path), [])
+
     def test_valid_plugin_has_no_errors(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root, report_path = self.make_valid_plugin(Path(temporary_directory))
