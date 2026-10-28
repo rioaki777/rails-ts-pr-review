@@ -1,0 +1,14 @@
+{
+  "name": "rails-ts-pr-review",
+  "description": "Rails + TypeScript の PR を変更種別ごとの観点でレビューする Claude Code プラグイン",
+  "owner": {
+    "name": "rio akiyama"
+  },
+  "plugins": [
+    {
+      "name": "rails-ts-pr-review",
+      "source": "./plugins/rails-ts-pr-review",
+      "description": "Rails + TypeScript の PR を変更種別ごとの観点でレビューする Claude Code プラグイン"
+    }
+  ]
+}

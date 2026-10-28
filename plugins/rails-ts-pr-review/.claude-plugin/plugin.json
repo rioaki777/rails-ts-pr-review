@@ -1,0 +1,8 @@
+{
+  "name": "rails-ts-pr-review",
+  "version": "0.1.0",
+  "description": "Rails + TypeScript の PR を変更種別ごとの観点でレビューする Claude Code プラグイン",
+  "author": {
+    "name": "rio akiyama"
+  }
+}
